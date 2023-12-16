@@ -220,6 +220,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         setState(() {
                           _image = image.path;
                         });
+                        Apis.updateProfilePic(File(_image!));
                         Navigator.pop(context);
                       }
                     },
@@ -242,6 +243,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         setState(() {
                           _image = photo.path;
                         });
+                        Apis.updateProfilePic(File(_image!));
                         Navigator.pop(context);
                       }
                     },
