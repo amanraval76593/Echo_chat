@@ -2,6 +2,8 @@
 
 import 'package:echo_chat/main.dart';
 import 'package:echo_chat/models/chat_user.dart';
+import 'package:echo_chat/screens/chat_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -20,7 +22,14 @@ class _UserCardState extends State<UserCard> {
     return Card(
       margin: EdgeInsets.symmetric(horizontal: mq.width * .02, vertical: 4),
       child: InkWell(
-        onTap: () {},
+        onTap: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => ChatScreen(
+                        user: widget.user,
+                      )));
+        },
         child: ListTile(
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
