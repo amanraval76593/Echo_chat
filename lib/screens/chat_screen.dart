@@ -1,7 +1,13 @@
+import 'dart:convert';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:echo_chat/main.dart';
 import 'package:echo_chat/models/chat_user.dart';
+import 'package:echo_chat/widgtes/message_Card.dart';
 import 'package:flutter/material.dart';
+
+import '../api/apis.dart';
+import '../models/message.dart';
 
 // ignore: must_be_immutable
 class ChatScreen extends StatefulWidget {
@@ -13,6 +19,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  List<Message> _list = [];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,8 +71,58 @@ class _ChatScreenState extends State<ChatScreen> {
       body: Padding(
         padding: EdgeInsets.only(bottom: mq.height * .03),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
+          //mainAxisAlignment: MainAxisAlignment.end,
           children: [
+            Expanded(
+              child: StreamBuilder(
+                stream: Apis.getMessage(),
+                builder: (context, snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.waiting:
+                    case ConnectionState.none:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.active:
+                    case ConnectionState.done:
+                      final data = snapshot.data?.docs;
+                      print("data : ${jsonEncode(data?[0].data())}");
+                      // list =
+                      //     data!.map((e) => ChatUser.fromJson(e.data())).toList();
+                      _list.clear();
+                      _list.add(Message(
+                          msg: "Hii",
+                          toId: "",
+                          read: "",
+                          type: Type.text,
+                          sent: "",
+                          fromId: Apis.user.uid));
+                      _list.add(Message(
+                          msg: "Hello",
+                          toId: "xyz",
+                          read: "",
+                          type: Type.text,
+                          sent: "",
+                          fromId: "xyz"));
+                      if (_list.isNotEmpty) {
+                        return ListView.builder(
+                            physics: BouncingScrollPhysics(),
+                            padding: EdgeInsets.only(top: mq.height * .01),
+                            itemCount: _list.length,
+                            itemBuilder: (context, index) {
+                              return MessageCard(message: _list[index]);
+                            });
+                      } else {
+                        return Center(
+                            child: Text(
+                          "Say Hii 👋 ",
+                          style: TextStyle(fontSize: 20),
+                        ));
+                      }
+                  }
+                },
+              ),
+            ),
             _BottomTextField(),
           ],
         ),

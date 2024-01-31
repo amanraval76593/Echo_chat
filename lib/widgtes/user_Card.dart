@@ -3,7 +3,6 @@
 import 'package:echo_chat/main.dart';
 import 'package:echo_chat/models/chat_user.dart';
 import 'package:echo_chat/screens/chat_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';

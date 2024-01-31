@@ -61,6 +61,10 @@ class Apis {
         .snapshots();
   }
 
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getMessage() {
+    return firestore.collection('message').snapshots();
+  }
+
   Future<void> updateUserInfo() async {
     await firestore
         .collection('users')
