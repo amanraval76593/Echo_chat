@@ -1,4 +1,5 @@
 import 'package:echo_chat/api/apis.dart';
+import 'package:echo_chat/helper/format_time.dart';
 import 'package:flutter/material.dart';
 
 import '../main.dart';
@@ -16,11 +17,14 @@ class _MessageCardState extends State<MessageCard> {
   @override
   Widget build(BuildContext context) {
     return Apis.user.uid == widget.message.fromId
-        ? _bluefield()
-        : _greenfield();
+        ? _greenfield()
+        : _bluefield();
   }
 
   Widget _bluefield() {
+    if (widget.message.read.isEmpty) {
+      Apis().updateReadStatus(widget.message);
+    }
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -46,7 +50,8 @@ class _MessageCardState extends State<MessageCard> {
           padding: EdgeInsets.symmetric(
               vertical: mq.width * .04, horizontal: mq.width * .07),
           child: Text(
-            "12:25 PM",
+            FormatTime.getFormatTime(
+                context: context, time: widget.message.sent),
             style: TextStyle(color: Colors.black54, fontSize: 13),
           ),
         )
@@ -65,13 +70,15 @@ class _MessageCardState extends State<MessageCard> {
             children: [
               Icon(
                 Icons.done_all_rounded,
-                color: Colors.blue,
+                color:
+                    widget.message.read.isNotEmpty ? Colors.blue : Colors.grey,
               ),
               SizedBox(
                 width: mq.width * .01,
               ),
               Text(
-                widget.message.read + "12:00 AM",
+                FormatTime.getFormatTime(
+                    context: context, time: widget.message.sent),
                 style: TextStyle(color: Colors.black54, fontSize: 13),
               ),
             ],
