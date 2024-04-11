@@ -64,8 +64,19 @@ class _UserCardState extends State<UserCard> {
                       ),
                     ),
                     title: Text(widget.user.name),
-                    subtitle: Text(
-                        _message != null ? _message!.msg : widget.user.about),
+                    subtitle: _message != null
+                        ? _message!.type == Type.text
+                            ? Text(_message!.msg)
+                            : Row(
+                                children: [
+                                  Icon(Icons.image),
+                                  SizedBox(
+                                    width: mq.width * .01,
+                                  ),
+                                  Text("Photo"),
+                                ],
+                              )
+                        : Text(widget.user.about),
                     trailing: _message == null
                         ? null
                         : _message!.read.isEmpty &&

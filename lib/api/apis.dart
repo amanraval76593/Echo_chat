@@ -82,13 +82,14 @@ class Apis {
         .snapshots();
   }
 
-  static Future<void> sendMessage(ChatUser chatuser, String msg) async {
+  static Future<void> sendMessage(
+      ChatUser chatuser, String msg, Type type) async {
     String time = DateTime.now().millisecondsSinceEpoch.toString();
     final Message message = Message(
         msg: msg,
         toId: chatuser.id,
         read: "",
-        type: Type.text,
+        type: type,
         sent: time,
         fromId: user.uid);
     final ref =
@@ -124,5 +125,19 @@ class Apis {
         .collection('users')
         .doc(auth.currentUser!.uid)
         .update({'image': me.image});
+  }
+
+  static Future<void> sendImageChat(ChatUser chatUser, File file) async {
+    final ext = file.path.split(".").last;
+    final ref = storage.ref().child(
+        "images/${getConversationID(chatUser.id)}/${DateTime.now().millisecondsSinceEpoch}.$ext");
+    print("extension : $ext");
+    await ref
+        .putFile(file, SettableMetadata(contentType: "image/$ext"))
+        .then((p0) {
+      print("Data transferred : ${p0.bytesTransferred / 1000} kb");
+    });
+    final imageUrl = await ref.getDownloadURL();
+    await sendMessage(chatUser, imageUrl, Type.image);
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:echo_chat/main.dart';
 import 'package:echo_chat/models/chat_user.dart';
@@ -5,6 +7,7 @@ import 'package:echo_chat/widgtes/message_Card.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../api/apis.dart';
 import '../models/message.dart';
@@ -36,40 +39,45 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         title: InkWell(
           onTap: () {},
-          child: Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(mq.height * .03),
-                child: CachedNetworkImage(
-                  fit: BoxFit.fill,
-                  height: mq.height * .050,
-                  width: mq.height * .050,
-                  imageUrl: widget.user.image,
-                ),
-              ),
-              SizedBox(
-                width: mq.width * .05,
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.user.name,
-                    style: TextStyle(
-                        fontSize: mq.height * .02, fontWeight: FontWeight.w500),
-                  ),
-                  SizedBox(
-                    height: mq.width * .005,
-                  ),
-                  Text(
-                    "Last active at 11:00 pm",
-                    style: TextStyle(fontSize: mq.height * .015),
-                  ),
-                ],
-              )
-            ],
-          ),
+          child: StreamBuilder(
+              stream: Apis.getUserInfo(widget.user),
+              builder: (context, snapshot) {
+                return Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(mq.height * .03),
+                      child: CachedNetworkImage(
+                        fit: BoxFit.fill,
+                        height: mq.height * .050,
+                        width: mq.height * .050,
+                        imageUrl: widget.user.image,
+                      ),
+                    ),
+                    SizedBox(
+                      width: mq.width * .05,
+                    ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.user.name,
+                          style: TextStyle(
+                              fontSize: mq.height * .02,
+                              fontWeight: FontWeight.w500),
+                        ),
+                        SizedBox(
+                          height: mq.width * .005,
+                        ),
+                        Text(
+                          "Last active at 11:00 pm",
+                          style: TextStyle(fontSize: mq.height * .015),
+                        ),
+                      ],
+                    )
+                  ],
+                );
+              }),
         ),
       ),
       body: GestureDetector(
@@ -181,7 +189,15 @@ class _ChatScreenState extends State<ChatScreen> {
                       hintText: "Type Your message..."),
                 )),
                 IconButton(
-                  onPressed: () {},
+                  onPressed: () async {
+                    final ImagePicker picker = ImagePicker();
+                    final List<XFile> images = await picker.pickMultiImage();
+                    if (images != null) {
+                      for (var image in images) {
+                        Apis.sendImageChat(widget.user, File(image.path));
+                      }
+                    }
+                  },
                   icon: Icon(
                     Icons.image,
                     size: 35,
@@ -189,7 +205,16 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () {},
+                  onPressed: () async {
+                    final ImagePicker picker = ImagePicker();
+                    final XFile? image = await picker.pickImage(
+                        source: ImageSource.camera, imageQuality: 70);
+                    if (image != null) {
+                      print(image.path);
+
+                      Apis.sendImageChat(widget.user, File(image.path));
+                    }
+                  },
                   icon: Icon(
                     Icons.camera_alt,
                     size: 35,
@@ -211,7 +236,7 @@ class _ChatScreenState extends State<ChatScreen> {
               onPressed: () {
                 // ignore: unnecessary_null_comparison
                 if (textcontroller.text != '') {
-                  Apis.sendMessage(widget.user, textcontroller.text);
+                  Apis.sendMessage(widget.user, textcontroller.text, Type.text);
                   textcontroller.text = '';
                 }
               },

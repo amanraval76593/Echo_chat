@@ -1,5 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:echo_chat/api/apis.dart';
 import 'package:echo_chat/helper/format_time.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../main.dart';
@@ -40,10 +42,23 @@ class _MessageCardState extends State<MessageCard> {
             margin: EdgeInsets.symmetric(
                 horizontal: mq.width * .04, vertical: mq.width * .04),
             padding: EdgeInsets.all(mq.width * .04),
-            child: Text(
-              widget.message.msg,
-              style: TextStyle(fontSize: 15, color: Colors.black54),
-            ),
+            child: widget.message.type == Type.text
+                ? Text(
+                    widget.message.msg,
+                    style: TextStyle(fontSize: 15, color: Colors.black54),
+                  )
+                : ClipRRect(
+                    borderRadius: BorderRadius.circular(mq.height * .001),
+                    child: CachedNetworkImage(
+                      fit: BoxFit.cover,
+
+                      imageUrl: widget.message.msg,
+                      // placeholder: (context, url) => CircularProgressIndicator(),
+                      errorWidget: (context, url, error) => CircleAvatar(
+                        child: Icon(CupertinoIcons.person),
+                      ),
+                    ),
+                  ),
           ),
         ),
         Padding(
@@ -96,10 +111,23 @@ class _MessageCardState extends State<MessageCard> {
             margin: EdgeInsets.symmetric(
                 horizontal: mq.width * .04, vertical: mq.width * .04),
             padding: EdgeInsets.all(mq.width * .04),
-            child: Text(
-              widget.message.msg,
-              style: TextStyle(fontSize: 15, color: Colors.black54),
-            ),
+            child: widget.message.type == Type.text
+                ? Text(
+                    widget.message.msg,
+                    style: TextStyle(fontSize: 15, color: Colors.black54),
+                  )
+                : ClipRRect(
+                    borderRadius: BorderRadius.circular(mq.height * .001),
+                    child: CachedNetworkImage(
+                      fit: BoxFit.cover,
+
+                      imageUrl: widget.message.msg,
+                      // placeholder: (context, url) => CircularProgressIndicator(),
+                      errorWidget: (context, url, error) => CircleAvatar(
+                        child: Icon(CupertinoIcons.person),
+                      ),
+                    ),
+                  ),
           ),
         ),
       ],
