@@ -1,8 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dio/dio.dart';
 import 'package:echo_chat/api/apis.dart';
+import 'package:echo_chat/helper/dialogs.dart';
 import 'package:echo_chat/helper/format_time.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 
 import '../main.dart';
 import '../models/message.dart';
@@ -18,9 +23,13 @@ class MessageCard extends StatefulWidget {
 class _MessageCardState extends State<MessageCard> {
   @override
   Widget build(BuildContext context) {
-    return Apis.user.uid == widget.message.fromId
-        ? _greenfield()
-        : _bluefield();
+    bool isMe = Apis.user.uid == widget.message.fromId;
+    return InkWell(
+      onLongPress: () {
+        _showBottomSheet();
+      },
+      child: isMe ? _greenfield() : _bluefield(),
+    );
   }
 
   Widget _bluefield() {
@@ -131,6 +140,160 @@ class _MessageCardState extends State<MessageCard> {
           ),
         ),
       ],
+    );
+  }
+
+  void _showBottomSheet() {
+    bool isMe = Apis.user.uid == widget.message.fromId;
+    showModalBottomSheet(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(15),
+            topRight: Radius.circular(15),
+          ),
+        ),
+        context: context,
+        builder: (_) {
+          return ListView(
+            shrinkWrap: true,
+            padding:
+                EdgeInsets.only(top: mq.height * .01, bottom: mq.height * .05),
+            children: [
+              Container(
+                height: 4,
+                margin: EdgeInsets.symmetric(
+                    vertical: mq.height * .015, horizontal: mq.width * .4),
+                decoration: BoxDecoration(color: Colors.grey),
+              ),
+              widget.message.type == Type.text
+                  ? options(
+                      icon: Icon(
+                        Icons.copy,
+                        size: mq.height * .03,
+                      ),
+                      optionText: 'Copy',
+                      onTap: () async {
+                        await Clipboard.setData(
+                                ClipboardData(text: widget.message.msg))
+                            .then((value) {
+                          Navigator.pop(context);
+                          Dialogs.showWarning(context, 'Text Copied');
+                        });
+                      })
+                  : options(
+                      icon: Icon(
+                        Icons.download,
+                        size: mq.height * .03,
+                      ),
+                      optionText: 'Save',
+                      onTap: () async {
+                        var response = await Dio().get(widget.message.msg,
+                            options: Options(responseType: ResponseType.bytes));
+                        final result = await ImageGallerySaver.saveImage(
+                            Uint8List.fromList(response.data),
+                            quality: 60,
+                            name: "hello");
+                        print(result);
+                        Navigator.pop(context);
+                      }),
+              isMe
+                  ? Padding(
+                      padding: EdgeInsets.symmetric(horizontal: mq.width * .05),
+                      child: Divider(
+                        color: Colors.grey.shade600,
+                      ),
+                    )
+                  : SizedBox(),
+              isMe
+                  ? options(
+                      icon: Icon(
+                        Icons.delete,
+                        size: mq.height * .03,
+                      ),
+                      optionText: 'Delete',
+                      onTap: () async {
+                        await Apis()
+                            .DeleteMessage(widget.message)
+                            .then((value) {
+                          Navigator.pop(context);
+                        });
+                      })
+                  : SizedBox(),
+              isMe
+                  ? options(
+                      icon: Icon(
+                        Icons.edit,
+                        size: mq.height * .03,
+                      ),
+                      optionText: 'Edit',
+                      onTap: () {})
+                  : SizedBox(),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: mq.width * .05),
+                child: Divider(
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              options(
+                  icon: Icon(
+                    Icons.send_rounded,
+                    size: mq.height * .03,
+                  ),
+                  optionText:
+                      'Sent at      ${FormatTime.getFormatSentTime(context: context, time: widget.message.sent)}',
+                  onTap: () {}),
+              isMe
+                  ? SizedBox()
+                  : options(
+                      icon: Icon(
+                        Icons.remove_red_eye,
+                        size: mq.height * .03,
+                      ),
+                      optionText: widget.message.read.isEmpty
+                          ? 'Read at         ---'
+                          : 'Read at     ${FormatTime.getFormatSentTime(context: context, time: widget.message.read)}',
+                      onTap: () {}),
+            ],
+          );
+        });
+  }
+}
+
+class options extends StatelessWidget {
+  Icon icon;
+  String optionText;
+  var onTap;
+
+  options(
+      {super.key,
+      required this.icon,
+      required this.optionText,
+      required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        // color: Colors.grey,
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+              vertical: mq.height * .015, horizontal: mq.width * .05),
+          child: Row(
+            children: [
+              icon,
+              SizedBox(
+                width: mq.width * .1,
+              ),
+              Text(
+                optionText,
+                style: TextStyle(
+                    fontSize: mq.width * .05, fontWeight: FontWeight.w300),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

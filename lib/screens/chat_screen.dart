@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:echo_chat/helper/format_time.dart';
 import 'package:echo_chat/main.dart';
 import 'package:echo_chat/models/chat_user.dart';
+import 'package:echo_chat/screens/view_proile_screen.dart';
 import 'package:echo_chat/widgtes/message_Card.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/gestures.dart';
@@ -38,10 +40,19 @@ class _ChatScreenState extends State<ChatScreen> {
           icon: Icon(Icons.arrow_back),
         ),
         title: InkWell(
-          onTap: () {},
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) {
+              return ViewProfile(chatUser: widget.user);
+            }));
+          },
           child: StreamBuilder(
               stream: Apis.getUserInfo(widget.user),
               builder: (context, snapshot) {
+                final data = snapshot.data?.docs;
+                var list = [];
+                if (data != null) {
+                  list = data!.map((e) => ChatUser.fromJson(e.data())).toList();
+                }
                 return Row(
                   children: [
                     ClipRRect(
@@ -50,7 +61,8 @@ class _ChatScreenState extends State<ChatScreen> {
                         fit: BoxFit.fill,
                         height: mq.height * .050,
                         width: mq.height * .050,
-                        imageUrl: widget.user.image,
+                        imageUrl:
+                            list.isNotEmpty ? list[0].image : widget.user.image,
                       ),
                     ),
                     SizedBox(
@@ -70,7 +82,11 @@ class _ChatScreenState extends State<ChatScreen> {
                           height: mq.width * .005,
                         ),
                         Text(
-                          "Last active at 11:00 pm",
+                          list.isNotEmpty
+                              ? list[0].isOnline
+                                  ? "online"
+                                  : "Last active at ${FormatTime.getFormatSentTime(context: context, time: list[0].lastActive)}"
+                              : "Last active at ${FormatTime.getFormatSentTime(context: context, time: widget.user.lastActive)}",
                           style: TextStyle(fontSize: mq.height * .015),
                         ),
                       ],

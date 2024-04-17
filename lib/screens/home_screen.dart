@@ -3,6 +3,7 @@ import 'package:echo_chat/models/chat_user.dart';
 import 'package:echo_chat/screens/profile_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../api/apis.dart';
 import '../widgtes/user_Card.dart';
 
@@ -20,6 +21,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     Apis().getSelfInfo();
+    Apis.updateActiveStatus(true);
+
+    SystemChannels.lifecycle.setMessageHandler((message) {
+      if (message!.toString().contains('pause')) Apis.updateActiveStatus(false);
+      if (message!.toString().contains('resume')) Apis.updateActiveStatus(true);
+      return Future.value(message);
+    });
     super.initState();
   }
 

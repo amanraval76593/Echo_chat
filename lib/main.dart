@@ -39,6 +39,7 @@ class MyApp extends StatelessWidget {
                 fontWeight: FontWeight.normal,
                 fontSize: 22),
             iconTheme: IconThemeData(color: Colors.black)),
+        primaryColor: Colors.blueAccent.shade200,
       ),
       home: LoadingScreen(),
     );

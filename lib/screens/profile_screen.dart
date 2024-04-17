@@ -37,6 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             backgroundColor: Colors.red.shade400,
             label: Text("LOGOUT"),
             onPressed: () async {
+              Apis.updateActiveStatus(false);
               Dialogs.ShowProgress(context);
               await Apis.auth.signOut().then((value) async {
                 await GoogleSignIn().signOut().then((value) {
