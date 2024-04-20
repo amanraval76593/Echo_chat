@@ -59,6 +59,24 @@ class Apis {
         .exists;
   }
 
+  Future<bool> AddUser(String email) async {
+    final data = await firestore
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .get();
+    if (data.docs.isNotEmpty && data.docs.first.id != user.uid) {
+      firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('my_users')
+          .doc(data.docs.first.id)
+          .set({});
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   Future<void> getSelfInfo() async {
     await firestore
         .collection('users')
@@ -96,10 +114,11 @@ class Apis {
         .set(chatUser.toJson()));
   }
 
-  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUser() {
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUser(
+      List<String> userId) {
     return firestore
         .collection('users')
-        .where('id', isNotEqualTo: user.uid)
+        .where('id', whereIn: userId.isEmpty ? [''] : userId)
         .snapshots();
   }
 
@@ -109,6 +128,24 @@ class Apis {
         .collection('users')
         .where('id', isNotEqualTo: user.uid)
         .snapshots();
+  }
+
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getUsersId() {
+    return firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('my_users')
+        .snapshots();
+  }
+
+  static Future<void> sendFirstMessage(
+      ChatUser chatuser, String message, Type type) async {
+    await firestore
+        .collection('users')
+        .doc(chatuser.id)
+        .collection('my_users')
+        .doc(user.uid)
+        .set({}).then((value) => sendMessage(chatuser, message, type));
   }
 
   static Future<void> updateActiveStatus(bool isOnline) async {
@@ -167,6 +204,15 @@ class Apis {
         .collection('chat/${getConversationID(message.fromId)}/message')
         .doc(message.sent)
         .update({'read': DateTime.now().millisecondsSinceEpoch.toString()});
+  }
+
+  Future<void> updateMessage(Message message, String newMessage) async {
+    firestore
+        .collection('chat/${getConversationID(message.toId)}/message')
+        .doc(message.sent)
+        .update(
+      {'msg': newMessage},
+    );
   }
 
   Future<void> DeleteMessage(Message message) async {

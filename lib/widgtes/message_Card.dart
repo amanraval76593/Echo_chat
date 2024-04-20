@@ -4,10 +4,12 @@ import 'package:echo_chat/api/apis.dart';
 import 'package:echo_chat/helper/dialogs.dart';
 import 'package:echo_chat/helper/format_time.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gallery_saver_updated/gallery_saver.dart';
 
-import 'package:image_gallery_saver/image_gallery_saver.dart';
 
 import '../main.dart';
 import '../models/message.dart';
@@ -187,14 +189,21 @@ class _MessageCardState extends State<MessageCard> {
                       ),
                       optionText: 'Save',
                       onTap: () async {
-                        var response = await Dio().get(widget.message.msg,
-                            options: Options(responseType: ResponseType.bytes));
-                        final result = await ImageGallerySaver.saveImage(
-                            Uint8List.fromList(response.data),
-                            quality: 60,
-                            name: "hello");
-                        print(result);
-                        Navigator.pop(context);
+                        try {
+                          //log('Image Url: ${widget.message.msg}');
+                          await GallerySaver.saveImage(widget.message.msg,
+                                  albumName: 'We Chat')
+                              .then((success) {
+                            //for hiding bottom sheet
+                            Navigator.pop(context);
+                            if (success != null && success) {
+                              Dialogs.showWarning(
+                                  context, 'Image Successfully Saved!');
+                            }
+                          });
+                        } catch (e) {
+                         // log('ErrorWhileSavingImg: $e');
+                        }
                       }),
               isMe
                   ? Padding(
@@ -211,12 +220,9 @@ class _MessageCardState extends State<MessageCard> {
                         size: mq.height * .03,
                       ),
                       optionText: 'Delete',
-                      onTap: () async {
-                        await Apis()
-                            .DeleteMessage(widget.message)
-                            .then((value) {
-                          Navigator.pop(context);
-                        });
+                      onTap: () {
+                        Navigator.pop(context);
+                        Apis().DeleteMessage(widget.message);
                       })
                   : SizedBox(),
               isMe
@@ -226,7 +232,10 @@ class _MessageCardState extends State<MessageCard> {
                         size: mq.height * .03,
                       ),
                       optionText: 'Edit',
-                      onTap: () {})
+                      onTap: () {
+                        Navigator.pop(context);
+                        showEditPanel();
+                      })
                   : SizedBox(),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: mq.width * .05),
@@ -253,6 +262,85 @@ class _MessageCardState extends State<MessageCard> {
                           ? 'Read at         ---'
                           : 'Read at     ${FormatTime.getFormatSentTime(context: context, time: widget.message.read)}',
                       onTap: () {}),
+            ],
+          );
+        });
+  }
+
+  void showEditPanel() {
+    final FocusNode _focusNode = FocusNode();
+    String newMessage = widget.message.msg;
+    showModalBottomSheet(
+        isScrollControlled: true,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(15),
+            topRight: Radius.circular(15),
+          ),
+        ),
+        context: context,
+        builder: (_) {
+          return ListView(
+            padding: EdgeInsets.only(
+                bottom:
+                    _focusNode.hasFocus ? mq.height * .40 : mq.height * .01),
+            shrinkWrap: true,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  vertical: mq.height * .0017,
+                ),
+                child: Center(
+                  child: Text(
+                    "Edit Message",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                    horizontal: mq.width * .07, vertical: mq.width * .025),
+                child: TextFormField(
+                  focusNode: _focusNode,
+                  autofocus: true,
+                  initialValue: newMessage,
+                  style: TextStyle(fontSize: 18),
+                  onChanged: (value) {
+                    newMessage = value;
+                  },
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                    horizontal: mq.width * .02, vertical: mq.width * .02),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(fontSize: mq.height * .02),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Apis().updateMessage(widget.message, newMessage);
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Send',
+                        style: TextStyle(fontSize: mq.height * .02),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           );
         });

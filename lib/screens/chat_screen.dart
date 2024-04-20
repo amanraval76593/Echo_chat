@@ -252,7 +252,11 @@ class _ChatScreenState extends State<ChatScreen> {
               onPressed: () {
                 // ignore: unnecessary_null_comparison
                 if (textcontroller.text != '') {
-                  Apis.sendMessage(widget.user, textcontroller.text, Type.text);
+                  _list.isEmpty
+                      ? Apis.sendFirstMessage(
+                          widget.user, textcontroller.text, Type.text)
+                      : Apis.sendMessage(
+                          widget.user, textcontroller.text, Type.text);
                   textcontroller.text = '';
                 }
               },
